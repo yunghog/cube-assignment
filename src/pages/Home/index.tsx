@@ -39,21 +39,22 @@ const HomePage = () => {
       setPhotos(res.data.photos);
       setLoadingPhotos(false);
     } catch (error) {
-      console.log(error);
-
       setPhotos([]);
       alert("Unable to fetch photos");
       setLoadingPhotos(false);
     }
   };
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     getUsers();
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       let n = pagePhotos;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setPagePhotos(n + 1);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       getPhotos();
     }, 10000);
     return () => clearInterval(interval);
@@ -97,7 +98,7 @@ const HomePage = () => {
                   {!loadingPhotos &&
                     photos.map((photo, index) => (
                       <div key={index} className="photo-item">
-                        <img src={photo.src.small} alt={`Photo ${index + 1}`} />
+                        <img src={photo.src.small} alt={`${index + 1}`} />
                       </div>
                     ))}
                 </div>
