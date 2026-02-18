@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>House Listings Viewer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f4f6f9;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      .controls {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      input[type="file"] {
+        margin: 10px;
+      }
+
+      button {
+        padding: 8px 14px;
+        border: none;
+        background: #2c7be5;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+
+      button:hover {
+        background: #1a5fd0;
+      }
+
+      .card-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+      }
+
+      .card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+
+      .card-body {
+        padding: 15px;
+      }
+
+      .price {
+        font-weight: bold;
+        color: #28a745;
+        margin: 5px 0;
+      }
+
+      .map-container {
+        margin-top: 30px;
+        height: 400px;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>House Listings Viewer</h1>
+
+    <div class="controls">
+      <input type="file" id="jsonFile" accept=".json" />
+      <button onclick="showAllOnMap()">Show All on Map</button>
+    </div>
+
+    <div class="card-container" id="cardContainer"></div>
+
+    <div class="map-container" id="mapContainer"></div>
+
+    <script>
+      let listings = [];
+
+      document
+        .getElementById("jsonFile")
+        .addEventListener("change", function (event) {
+          const file = event.target.files[0];
+          const reader = new FileReader();
+
+          reader.onload = function (e) {
+            const data = JSON.parse(e.target.result);
+            listings = Array.isArray(data) ? data : [data];
+            renderCards();
+          };
+
+          reader.readAsText(file);
+        });
+
+      function formatDate(timestamp) {
+        if (!timestamp) return "";
+        return new Date(timestamp).toLocaleDateString();
+      }
+
+      function renderCards() {
+        const container = document.getElementById("cardContainer");
+        container.innerHTML = "";
+
+        listings.forEach((item, index) => {
+          const imageUrl =
+            item.photos && item.photos.length > 0
+              ? "https://assets.nobroker.in/images/" +
+                item.id +
+                "/" +
+                item.photos[0].imagesMap.large
+              : item.thumbnailImage;
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.innerHTML = `
+      <img src="${imageUrl}" />
+      <div class="card-body">
+        <h3>${item.propertyTitle}</h3>
+        <p>${item.ownerDescription || ""}</p>
+        <p><strong>Address:</strong> ${item.address}</p>
+        <p><strong>Created:</strong> ${formatDate(item.creationDate)}</p>
+        <p><a href="${item.shortUrl}" target="_blank">Short URL</a></p>
+        <p class="price">Rent: ₹${item.formattedPrice}</p>
+        <p class="price">Deposit: ₹${item.formattedDeposit}</p>
+        <button onclick="event.stopPropagation(); viewFull('${item.detailUrl}')">View Full Details</button>
+      </div>
+    `;
+
+          card.onclick = () => showSingleMap(item.latitude, item.longitude);
+
+          container.appendChild(card);
+        });
+      }
+
+      function viewFull(url) {
+        window.open("https://www.nobroker.in" + url, "_blank");
+      }
+
+      function showSingleMap(lat, lng) {
+        const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        window.open(url, "_blank");
+      }
+
+      function showAllOnMap() {
+        if (listings.length === 0) return;
+
+        const markers = listings
+          .map((item) => `${item.latitude},${item.longitude}`)
+          .join("|");
+
+        const mapContainer = document.getElementById("mapContainer");
+        mapContainer.innerHTML = `
+    <iframe 
+      src="https://www.google.com/maps?q=${markers}&hl=es;z=13&output=embed">
+    </iframe>
+  `;
+      }
+    </script>
+  </body>
+</html>
