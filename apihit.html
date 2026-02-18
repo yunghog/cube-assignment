@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <title>NoBroker API Downloader</title>
+    <style>
+      body {
+        font-family: Arial;
+        padding: 20px;
+        max-width: 500px;
+      }
+      input,
+      button {
+        padding: 8px;
+        margin-top: 10px;
+        width: 100%;
+      }
+      button {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>NoBroker Data Downloader</h2>
+
+    <label>Page Number:</label>
+    <input type="number" id="pageNo" value="2" min="1" />
+
+    <button onclick="fetchData()">Fetch & Download</button>
+
+    <p id="status"></p>
+
+    <script>
+      async function fetchData() {
+        const pageNo = document.getElementById("pageNo").value;
+        const status = document.getElementById("status");
+
+        status.innerText = "Fetching...";
+
+        const url = `https://www.nobroker.in/api/v3/multi/property/RENT/filter?city=bangalore&locality=Jayanagar&pageNo=${pageNo}&radius=2.0&searchParam=W3sibGF0IjoxMi45MzA3NzM1LCJsb24iOjc3LjU4MzgzMDIsInBsYWNlSWQiOiJDaElKMmRkbFo1Z1ZyanNSaDFCT0FhZi1vcnMiLCJwbGFjZU5hbWUiOiJKYXlhbmFnYXIifV0=&sharedAccomodation=0`;
+
+        try {
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              userid: "8a9f8b4393b6ad340193b6edeae10945",
+              "X-Origin": "nb-search",
+              "X-Request-Device-Timezone": "Asia/Calcutta",
+              "User-Agent": navigator.userAgent,
+            },
+          });
+
+          const json = await response.json();
+
+          if (!json.data) {
+            status.innerText = "No data found in response.";
+            return;
+          }
+
+          downloadJSON(json.data, `nobroker-page-${pageNo}.json`);
+          status.innerText = "Downloaded successfully.";
+        } catch (err) {
+          console.error(err);
+          status.innerText = "Error fetching data (CORS likely blocked).";
+        }
+      }
+
+      function downloadJSON(data, filename) {
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </body>
+</html>
